@@ -54,6 +54,7 @@ code-gate:
 code-gate-mr:
   stage: sonar-scan
   script:
+
     - echo "No cov for now"
 #    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
 #      -Dsonar.projectKey=GL-$CI_PROJECT_ID
