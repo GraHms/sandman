@@ -27,7 +27,10 @@ resource "aws_iam_policy" "sandman_policy" {
     Statement = [
       {
         Action : [
-          "sqs:SendMessage"
+          "sqs:SendMessage",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:ChangeMessageVisibility"
         ],
         "Effect" : "Allow",
         "Resource" : aws_sqs_queue.compse_sqs_sandman.arn

@@ -78,3 +78,23 @@ variable "hostname" {
   description = "Domain name"
 
 }
+variable "cpu" {
+  type = string
+}
+variable "memory" {
+  type = string
+}
+
+variable "logs_retention_days" {
+  type = number
+}
+
+variable "container_max_replicas" {
+  type = number
+  description = "Max container replicas"
+}
+
+variable "container_min_replicas" {
+  type = number
+  description = "Max container replicas"
+}
