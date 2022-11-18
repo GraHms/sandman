@@ -67,6 +67,7 @@ func (sqsa *Adapter) DeleteMessage(msg *sqs.Message) {
 func (sqsa *Adapter) ReadMessages(chnMessages chan<- *sqs.Message) {
 
 	//chnMessages := make(chan *sqs.Message, 20)
+
 	go sqsa.PollMessages(chnMessages)
 
 }
