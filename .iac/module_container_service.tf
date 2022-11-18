@@ -61,13 +61,6 @@ module "sandman-service" {
 
     main = {
 
-      #      health_check = {
-      #      success_status=200
-      #      target = {
-      #        port=8080
-      #        path="/health/liveness"
-      #        }
-      #      }
 
       image = var.app_docker_image
       #Allports  being exposed by container

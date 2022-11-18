@@ -19,22 +19,26 @@ EOF
 
 resource "aws_iam_policy" "sandman_policy" {
 
-  name        = "commission-engine-ecs-task-policy"
+  name        = local.iam_role_name
   path        = "/"
-  description = "Allow ECS task to read SQS Queue, Get Secret Value and Decrypt KMS"
+  description = "Allow ECS task to read SQS Queue"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Action : [
-          "sqs:SendMessage",
-          "sqs:ReceiveMessage",
-          "sqs:DeleteMessage",
-          "sqs:ChangeMessageVisibility"
-        ],
-        "Effect" : "Allow",
-        "Resource" : aws_sqs_queue.compse_sqs_sandman.arn
-      },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sqs:SendMessage",
+                "sqs:DeleteMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:ReceiveMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:TagQueue",
+                "sqs:UntagQueue",
+                "sqs:PurgeQueue"
+            ],
+            "Resource": aws_sqs_queue.compse_sqs_sandman.arn
+        }
     ]
   })
 }
