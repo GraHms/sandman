@@ -37,18 +37,18 @@ go-test:
 
 
 # This Job scans branches only
-#code-gate:
-#  stage: sonar-scan
-#  script:
-#    - echo "No cov for now"
-##    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
-##      -Dsonar.projectKey=GL-$CI_PROJECT_ID
-##      -Dsonar.qualitygate.wait=true
-##      -Dsonar.branch.name=$CI_COMMIT_BRANCH
-##      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
-##      -Dsonar.go.coverage.reportPaths=coverage.out
-#  rules:
-#    - !reference [.sonarqube-scan-branch, rules]
+code-gate:
+  stage: sonar-scan
+  script:
+    - echo "No cov for now"
+#    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
+#      -Dsonar.projectKey=GL-$CI_PROJECT_ID
+#      -Dsonar.qualitygate.wait=true
+#      -Dsonar.branch.name=$CI_COMMIT_BRANCH
+#      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
+#      -Dsonar.go.coverage.reportPaths=coverage.out
+  rules:
+    - !reference [.sonarqube-scan-branch, rules]
 
 # This job scans merge requests only
 code-gate-mr:
