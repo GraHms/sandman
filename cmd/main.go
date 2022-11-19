@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"os"
@@ -12,9 +13,12 @@ import (
 
 func main() {
 	var SqsPollAdapter ports.SQSPORT
-	sess := session.Must(session.NewSessionWithOptions(session.Options{Config: aws.Config{Region: aws.String("af-south-1")}}))
+	sess := session.Must(session.NewSessionWithOptions(session.Options{Config: aws.Config{
+		Credentials: credentials.NewStaticCredentials("root", "root", ""),
+		Endpoint:    aws.String("http://localhost:4566"),
+		Region:      aws.String("us-east-1")}}))
 	sqsSvc := sqs.New(sess)
-	queueUrl := os.Getenv("SQS_QUEUE_URL")
+	queueUrl := os.Getenv("http://localhost:4566/000000000000/sandman-q")
 	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, queueUrl, ":8080")
 
 	wg := sync.WaitGroup{}
