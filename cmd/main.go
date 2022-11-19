@@ -2,9 +2,10 @@ package main
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"os"
+	"serviceman/internal/adapters/application"
 	_sqs "serviceman/internal/adapters/framework/primary/sqs"
 	"serviceman/internal/ports"
 	"sync"
@@ -12,14 +13,19 @@ import (
 
 func main() {
 	var SqsPollAdapter ports.SQSPORT
+	var AppAdapter ports.APPPort
+
+	AppAdapter = application.NewAdapter()
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			Region: aws.String("af-south-1")}}))
+			Credentials: credentials.NewStaticCredentials("root", "root", ""),
+			Endpoint:    aws.String("http://localhost:4566"),
+			Region:      aws.String("us-east-1")}}))
 
 	sqsSvc := sqs.New(sess)
-	queueUrl := os.Getenv("SQS_QUEUE_URL")
-	//queueUrl := "http://localhost:4566/000000000000/sandman-q"
-	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, queueUrl, ":8080")
+	//queueUrl := os.Getenv("SQS_QUEUE_URL")
+	queueUrl := "http://localhost:4566/000000000000/sandman-q"
+	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, AppAdapter, queueUrl, ":8080")
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -35,16 +41,7 @@ func main() {
 		chnMessages := make(chan *sqs.Message, 20)
 		go SqsPollAdapter.ReadMessages(chnMessages)
 		println("sqs is running")
-		rwg := sync.WaitGroup{}
-		for message := range chnMessages {
-			rwg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				defer wg.Done()
-				SqsPollAdapter.HandleMessage(message)
-				SqsPollAdapter.DeleteMessage(message)
-			}(&rwg)
-			rwg.Done()
-		}
+		SqsPollAdapter.HandleMessages(chnMessages)
 	}()
 	wg.Wait()
 
