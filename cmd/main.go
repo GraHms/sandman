@@ -18,6 +18,7 @@ func main() {
 
 	sqsSvc := sqs.New(sess)
 	queueUrl := os.Getenv("SQS_QUEUE_URL")
+	//queueUrl := "http://localhost:4566/000000000000/sandman-q"
 	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, queueUrl, ":8080")
 
 	wg := sync.WaitGroup{}

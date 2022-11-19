@@ -32,7 +32,7 @@ func (sqsa *Adapter) PollMessages(chn chan<- *sqs.Message) {
 		output, err := sqsa.SQS.ReceiveMessage(&sqs.ReceiveMessageInput{
 			QueueUrl:            aws.String(sqsa.QueueUrl),
 			MaxNumberOfMessages: aws.Int64(2),
-			WaitTimeSeconds:     aws.Int64(150),
+			WaitTimeSeconds:     aws.Int64(10),
 		})
 
 		if err != nil {
