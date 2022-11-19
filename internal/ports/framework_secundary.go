@@ -1,5 +1,7 @@
 package ports
 
+import "serviceman/internal/pkg/models"
+
 type RequestPORT interface {
-	SendRequest() error
+	SendRequest(body models.Body) error
 }

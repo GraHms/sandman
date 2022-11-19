@@ -5,8 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"net/http"
 	"serviceman/internal/adapters/application"
 	_sqs "serviceman/internal/adapters/framework/primary/sqs"
+	_http "serviceman/internal/adapters/framework/secundary/http"
 	"serviceman/internal/ports"
 	"sync"
 )
@@ -14,8 +16,12 @@ import (
 func main() {
 	var SqsPollAdapter ports.SQSPORT
 	var AppAdapter ports.APPPort
+	var requestAdater ports.RequestPORT
 
-	AppAdapter = application.NewAdapter()
+	httpClient := http.Client{}
+	requestAdater = _http.NewAdapter(&httpClient)
+
+	AppAdapter = application.NewAdapter(requestAdater)
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Credentials: credentials.NewStaticCredentials("root", "root", ""),

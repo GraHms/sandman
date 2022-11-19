@@ -1,12 +1,12 @@
 package models
 
 type Request struct {
-	Retries     int    `json:"retries"`
-	Method      string `json:"method"`
-	ContentType string `json:"contentType"`
-	Body        string `json:"body"`
-	Sub         string `json:"sub"`
-	Headers     string `json:"headers"`
+	Retries     int         `json:"retries"`
+	Method      string      `json:"method"`
+	ContentType string      `json:"contentType"`
+	Body        interface{} `json:"body"`
+	Sub         string      `json:"sub"`
+	Headers     string      `json:"headers"`
 }
 
 type Response struct {

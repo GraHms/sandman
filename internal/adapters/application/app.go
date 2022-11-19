@@ -5,20 +5,26 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"serviceman/internal/pkg/models"
+	"serviceman/internal/ports"
 )
 
 type Adapter struct {
+	secundaryAdapter ports.RequestPORT
 }
 
-func NewAdapter() *Adapter {
-	return &Adapter{}
+func NewAdapter(secundaryAdapter ports.RequestPORT) *Adapter {
+	return &Adapter{secundaryAdapter: secundaryAdapter}
 }
 func (apia *Adapter) ProcessMessage(message *sqs.Message) error {
 	body, err := apia.ConvertSQSBody(*message)
 	if err != nil {
+		return nil
+	}
+	err = apia.secundaryAdapter.SendRequest(body)
+	if err != nil {
 		return err
 	}
-	fmt.Printf("%v", body)
+
 	return err
 }
 
@@ -26,8 +32,9 @@ func (apia *Adapter) ConvertSQSBody(msg sqs.Message) (models.Body, error) {
 	var body models.Body
 	err := json.Unmarshal([]byte(*msg.Body), &body)
 	if err != nil {
+		fmt.Printf("error found here", err)
 		return models.Body{}, err
 	}
-	fmt.Printf("%v", body)
+	//fmt.Printf("%v", body)
 	return body, nil
 }
