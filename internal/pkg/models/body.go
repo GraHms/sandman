@@ -24,6 +24,6 @@ type Callbacks struct {
 	IsDefault         bool   `json:"isDefault"`
 	Name              string `json:"name"`
 	WhenRequestStatus int    `json:"whenRequestStatus,omitempty"`
-	Sub               string `json:"sub"`
-	Body              string `json:"body"`
+	SuccessStatus     int    `json:"successStatus"`
+	Request
 }

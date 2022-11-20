@@ -24,8 +24,11 @@ func NewAdapter(client *http.Client) *Adapter {
 
 func (seca *Adapter) SendRequest(body models.Body) error {
 	println("making an http call")
-	mainReq := seca.PrepareMainRequest(body)
-	err := seca.Execute(mainReq)
+	//mainReq := seca.PrepareMainRequest(body)
+	lineUp := NewComposer(body)
+	election := lineUp.List.GetHead()
+	elected := election.ReqModel
+	err := seca.Execute(&elected)
 	if err != nil {
 		return err
 	}
@@ -87,16 +90,13 @@ func (seca *Adapter) PrepareMainRequest(body models.Body) *RequestModel {
 }
 
 type RequestModel struct {
-	Retries             int
-	ExpectSuccessStatus int
-	Method              string
-	ContentType         string
-	Endpoint            string
-	Body                interface{}
-	Headers             string
-}
-
-type ReqInOrder struct {
-	Main      RequestModel
-	CallBacks []RequestModel
+	IsCallback                  bool
+	CallBackExecuteWhenStatusIs int
+	Retries                     int
+	ExpectSuccessStatus         int
+	Method                      string
+	ContentType                 string
+	Endpoint                    string
+	Body                        interface{}
+	Headers                     string
 }
