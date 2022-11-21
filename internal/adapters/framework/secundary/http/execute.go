@@ -34,7 +34,7 @@ func (seca *Adapter) SendRequest(body models.Body) error {
 			headExpectedStatus = elected.ReqModel.ExpectSuccessStatus
 		}
 		if (elected.ReqModel.IsCallback == true && headExpectedStatus != elected.ReqModel.CallBackExecuteWhenStatusIs) || (headResponse.StatusCode != headExpectedStatus) {
-			// if callback isn't triggered by head status code
+			// if callback isn't triggered by head status code response
 			lineUp.List.PopHead()
 			elected = elected.next
 			continue
