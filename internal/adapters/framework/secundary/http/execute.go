@@ -27,17 +27,25 @@ func (seca *Adapter) SendRequest(body models.Body) error {
 	lineUp := NewComposer(body)
 	elected := lineUp.List.GetHead()
 	var headExpectedStatus int
+	var headResponse *http.Response
+	defer bodyCloser(headResponse.Body)
 	for elected != nil {
 		if elected.ReqModel.IsCallback != true {
 			headExpectedStatus = elected.ReqModel.ExpectSuccessStatus
 		}
-		if elected.ReqModel.IsCallback == true && headExpectedStatus != elected.ReqModel.CallBackExecuteWhenStatusIs {
+		if (elected.ReqModel.IsCallback == true && headExpectedStatus != elected.ReqModel.CallBackExecuteWhenStatusIs) || (headResponse.StatusCode != headExpectedStatus) {
 			// if callback isn't triggered by head status code
 			lineUp.List.PopHead()
 			elected = elected.next
 			continue
 		}
-		err := seca.Execute(&elected.ReqModel)
+
+		respBody, err := seca.Execute(&elected.ReqModel)
+		if elected.ReqModel.IsCallback != true {
+			headResponse = respBody
+		} else {
+			bodyCloser(respBody.Body)
+		}
 		if err != nil && elected.ReqModel.IsCallback == false {
 			// if error on head request, break entire process loop
 			return err
@@ -54,7 +62,7 @@ func (seca *Adapter) SendRequest(body models.Body) error {
 	return nil
 }
 
-func (seca *Adapter) Execute(reqModel *RequestModel) error {
+func (seca *Adapter) Execute(reqModel *RequestModel) (*http.Response, error) {
 
 	//	first step, call main request
 	headers := http.Header{
@@ -67,7 +75,7 @@ func (seca *Adapter) Execute(reqModel *RequestModel) error {
 
 	if err != nil {
 		fmt.Printf("couldn't marshal body: ", bodyBytes)
-		return err
+		return resp, err
 	}
 	bodyReader := bytes.NewReader(bodyBytes)
 	for i := 0; i < reqModel.Retries; i++ {
@@ -76,23 +84,24 @@ func (seca *Adapter) Execute(reqModel *RequestModel) error {
 		err, resp = seca.MakeHTTPRequest(reqModel.Endpoint, reqModel.Method, *bodyReader, headers)
 
 		if err != nil {
-			return err
+			return resp, err
 		}
 		if resp.StatusCode == reqModel.ExpectSuccessStatus {
 			println("request successfully made to ", reqModel.Endpoint, " The status code is: ", resp.StatusCode)
-			return nil
+			return resp, nil
 		}
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			return
-		}
-	}(resp.Body)
+
 	e := "couldn't call " + reqModel.Endpoint + " after " + string(rune(reqModel.Retries)) + " attempts. expected status is:" + string(rune(reqModel.ExpectSuccessStatus)) + " and given is " + string(rune(resp.StatusCode))
-	return errors.New(e)
+	return resp, errors.New(e)
 }
 
+func bodyCloser(Body io.ReadCloser) {
+	err := Body.Close()
+	if err != nil {
+		return
+	}
+}
 func (seca *Adapter) PrepareMainRequest(body models.Body) *RequestModel {
 	var req RequestModel
 	req.ExpectSuccessStatus = body.Response.SuccessStatus
