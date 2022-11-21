@@ -24,15 +24,33 @@ func NewAdapter(client *http.Client) *Adapter {
 
 func (seca *Adapter) SendRequest(body models.Body) error {
 	println("making an http call")
-	//mainReq := seca.PrepareMainRequest(body)
 	lineUp := NewComposer(body)
-	election := lineUp.List.GetHead()
-	elected := election.ReqModel
-	err := seca.Execute(&elected)
-	if err != nil {
-		return err
-	}
+	elected := lineUp.List.GetHead()
+	var headExpectedStatus int
+	for elected != nil {
+		if elected.ReqModel.IsCallback != true {
+			headExpectedStatus = elected.ReqModel.ExpectSuccessStatus
+		}
+		if elected.ReqModel.IsCallback == true && headExpectedStatus != elected.ReqModel.CallBackExecuteWhenStatusIs {
+			// if callback isn't triggered by head status code
+			lineUp.List.PopHead()
+			elected = elected.next
+			continue
+		}
+		err := seca.Execute(&elected.ReqModel)
+		if err != nil && elected.ReqModel.IsCallback == false {
+			// if error on head request, break entire process loop
+			return err
+		}
+		//	send elected to queue and continue execution
+		if err != nil {
 
+			println("This callback failed, we are sending it to the queue")
+		}
+		lineUp.List.PopHead()
+		elected = elected.next
+	}
+	fmt.Println()
 	return nil
 }
 
@@ -45,8 +63,7 @@ func (seca *Adapter) Execute(reqModel *RequestModel) error {
 	}
 	var resp *http.Response
 	bodyInter := reqModel.Body.(map[string]interface{})
-	bodyInter = bodyInter["request"].(map[string]interface{})
-	bodyBytes, err := json.Marshal(bodyInter["body"])
+	bodyBytes, err := json.Marshal(bodyInter)
 
 	if err != nil {
 		fmt.Printf("couldn't marshal body: ", bodyBytes)

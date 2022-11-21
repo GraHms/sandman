@@ -32,7 +32,7 @@ func (apia *Adapter) ConvertSQSBody(msg sqs.Message) (models.Body, error) {
 	var body models.Body
 	err := json.Unmarshal([]byte(*msg.Body), &body)
 	if err != nil {
-		fmt.Printf("error found here", err)
+		fmt.Println(err)
 		return models.Body{}, err
 	}
 	//fmt.Printf("%v", body)
