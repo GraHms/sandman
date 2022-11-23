@@ -16,8 +16,17 @@ type Response struct {
 }
 
 type Body struct {
-	Request  Request  `json:"request"`
-	Response Response `json:"response"`
+	Name           string   `json:"name"`
+	TraceId        string   `json:"traceId"`
+	GroupReference string   `json:"groupReference"`
+	Origin         string   `json:"origin"`
+	SandmanVersion string   `json:"sandmanVersion"`
+	Intent         string   `json:"intent"`
+	Description    string   `json:"description"`
+	Journey        string   `json:"journey"`
+	Owner          string   `json:"owner"`
+	Request        Request  `json:"request"`
+	Response       Response `json:"response"`
 }
 
 type Callbacks struct {
@@ -26,4 +35,11 @@ type Callbacks struct {
 	WhenRequestStatus int    `json:"whenRequestStatus,omitempty"`
 	SuccessStatus     int    `json:"successStatus"`
 	Request
+
+	MapToBody []MapToBody `json:"mapToBody"`
+}
+
+type MapToBody struct {
+	QueryField  string `json:"queryField"`
+	TargetField string `json:"targetField"`
 }

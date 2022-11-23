@@ -3,8 +3,13 @@ package http
 import "serviceman/internal/pkg/models"
 
 type Compose struct {
-	List *List
-	body models.Body
+	body       models.Body
+	Candidates ListCandidates
+}
+
+type ListCandidates struct {
+	head      RequestModel
+	callbacks map[int][]RequestModel
 }
 
 func NewComposer(body models.Body) *Compose {
@@ -16,23 +21,42 @@ func NewComposer(body models.Body) *Compose {
 }
 
 func (c *Compose) Compose() {
+
 	mainReq := c.PrepareMain()
-	reqList := NewList(*mainReq)
-	c.AttachCallBacks()
-	c.List = reqList
+	c.Candidates.head = *mainReq
+	if c.body.Response.HasCallBack {
+		c.AttachCallBacks()
+	}
 }
 
 func (c *Compose) AttachCallBacks() {
-	if c.body.Response.HasCallBack {
-		for _, callback := range c.body.Response.Callbacks {
-			c.List.Insert(*c.PrepareCallback(callback))
+	_callbacks := make(map[int][]RequestModel)
+	for _, callback := range c.body.Response.Callbacks {
+		triggerStatus := callback.WhenRequestStatus
+		val := c.PrepareCallback(callback)
+		if _, ok := _callbacks[triggerStatus]; !ok {
+			_callbacks[triggerStatus] = []RequestModel{
+				*val,
+			}
+			continue
 		}
+		_callbacks[triggerStatus] = append(_callbacks[triggerStatus], *val)
 	}
+
+	c.Candidates.callbacks = _callbacks
 }
 
 func (c *Compose) PrepareMain() *RequestModel {
 	var req RequestModel
 	req.IsCallback = false
+	req.Intent = c.body.Intent
+	req.TraceId = c.body.TraceId
+	req.Description = c.body.Description
+	req.GroupReference = c.body.GroupReference
+	req.Owner = c.body.Owner
+	req.SandmanVersion = c.body.SandmanVersion
+	req.Name = c.body.Name
+	req.Journey = c.body.Journey
 	req.ExpectSuccessStatus = c.body.Response.SuccessStatus
 	req.Retries = c.body.Request.Retries
 	req.Endpoint = c.body.Request.Sub
@@ -45,6 +69,14 @@ func (c *Compose) PrepareMain() *RequestModel {
 
 func (c *Compose) PrepareCallback(body models.Callbacks) *RequestModel {
 	var req RequestModel
+	req.Intent = c.body.Intent
+	req.TraceId = c.body.TraceId
+	req.Description = c.body.Description
+	req.GroupReference = c.body.GroupReference
+	req.Owner = c.body.Owner
+	req.SandmanVersion = c.body.SandmanVersion
+	req.Name = body.Name
+	req.Journey = c.body.Journey
 	req.CallBackExecuteWhenStatusIs = c.body.Response.SuccessStatus
 	req.IsCallback = true
 	req.ExpectSuccessStatus = body.SuccessStatus
@@ -54,5 +86,6 @@ func (c *Compose) PrepareCallback(body models.Callbacks) *RequestModel {
 	req.Body = body.Body
 	req.ContentType = body.ContentType
 	req.Headers = body.Headers
+	req.MapTobody = body.MapToBody
 	return &req
 }
