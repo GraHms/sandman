@@ -72,21 +72,21 @@ func (seca *Adapter) SendRequest(body models.Body) error {
 		// if is not an api error
 		// send request back to queue
 		if _err, ok := err.(*RequestError); !ok {
-			logger.log("failed", _err.Error(), "keepInQueue", electedHead)
+			logger.log("failed", "", "keepInQueue", electedHead)
 			return _err
 		}
 		// check if error status code has callbacks to execute
 		if val, ok := callbacks[headRespBody.StatusCode]; ok {
-			logger.log("failed", err.Error(), "processFailEvents", electedHead)
+			logger.log("failed", "", "processFailEvents", electedHead)
 			// if it has any failure callback, then it should delete main request
 			mapHeadBody := seca.ConvertBodyResponse(headRespBody)
 
 			seca.ExecCallbacks(val, mapHeadBody)
-			logger.log("failed", err.Error(), "popdAndProcessedFailedEvents", electedHead)
+			logger.log("failed", "", "popdAndProcessedFailedEvents", electedHead)
 			return nil
 		}
 		// this error has no callback
-		logger.log("failed", err.Error(), "keepInQueue", electedHead)
+		logger.log("failed", "", "keepInQueue", electedHead)
 		return err
 	}
 	// head processed as expected, so the head should be removed from queue
