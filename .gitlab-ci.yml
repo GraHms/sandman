@@ -1,6 +1,6 @@
 variables:
   PROJECT_NAME: "commission-engine-payment-lambda"
-  SONAR_EXCLUSIONS: "test/**, src/util/secrets.go, src/util/config.go, src/request/request.go, src/main.go"
+  SONAR_EXCLUSIONS: "internal/**_test.go ,cmd/main.go, internal/adapters/framework/mocks/**, internal/adapters/framework/primary/sqs/server.go"
   GO_BUILD_OUTPUT : "main"
   GO_BUILD_INPUT: "cmd/main.go"
   CGO_ENABLED: 0
@@ -15,8 +15,7 @@ include:
 go-test:
   stage: test
   script:
-    - echo "No need to scan"
-#    - make test
+    - go test -json ./... -covermode=atomic -coverprofile coverage.out
 
   artifacts:
       paths:
@@ -37,35 +36,35 @@ go-test:
 
 
 # This Job scans branches only
-code-gate:
-  stage: sonar-scan
-  script:
-    - echo "No cov for now"
-#    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
-#      -Dsonar.projectKey=GL-$CI_PROJECT_ID
-#      -Dsonar.qualitygate.wait=true
-#      -Dsonar.branch.name=$CI_COMMIT_BRANCH
-#      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
-#      -Dsonar.go.coverage.reportPaths=coverage.out
-  rules:
-    - !reference [.sonarqube-scan-branch, rules]
+#code-gate:
+#  stage: sonar-scan
+#  script:
+#    - echo "No cov for now"
+##    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
+##      -Dsonar.projectKey=GL-$CI_PROJECT_ID
+##      -Dsonar.qualitygate.wait=true
+##      -Dsonar.branch.name=$CI_COMMIT_BRANCH
+##      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
+##      -Dsonar.go.coverage.reportPaths=coverage.out
+#  rules:
+#    - !reference [.sonarqube-scan-branch, rules]
 
 # This job scans merge requests only
-code-gate-mr:
-  stage: sonar-scan
-  script:
-
-    - echo "No cov for now"
-#    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
-#      -Dsonar.projectKey=GL-$CI_PROJECT_ID
-#      -Dsonar.qualitygate.wait=true
-#      -Dsonar.pullrequest.branch=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-#      -Dsonar.pullrequest.base=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-#      -Dsonar.pullrequest.key="GL-$CI_PROJECT_ID"
-#      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
-#      -Dsonar.go.coverage.reportPaths=coverage.out
-  rules:
-    - !reference [.sonarqube-scan-merge-request, rules]
+#code-gate-mr:
+#  stage: sonar-scan
+#  script:
+#
+#    - echo "No cov for now"
+##    - sonar-scanner -Dsonar.projectName=$SONAR_PROJECT_NAME
+##      -Dsonar.projectKey=GL-$CI_PROJECT_ID
+##      -Dsonar.qualitygate.wait=true
+##      -Dsonar.pullrequest.branch=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+##      -Dsonar.pullrequest.base=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+##      -Dsonar.pullrequest.key="GL-$CI_PROJECT_ID"
+##      -Dsonar.exclusions="$SONAR_EXCLUSIONS"
+##      -Dsonar.go.coverage.reportPaths=coverage.out
+#  rules:
+#    - !reference [.sonarqube-scan-merge-request, rules]
 
 
 #go-build:
