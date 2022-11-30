@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"serviceman/internal/pkg/models"
-	"serviceman/internal/ports"
+	"lab.dev.vm.co.mz/compse/sandman/internal/pkg/models"
+	"lab.dev.vm.co.mz/compse/sandman/internal/ports"
 )
 
 type Adapter struct {
@@ -35,6 +35,6 @@ func (apia *Adapter) ConvertSQSBody(msg sqs.Message) (models.Body, error) {
 		fmt.Println(err)
 		return models.Body{}, err
 	}
-	//fmt.Printf("%v", body)
+
 	return body, nil
 }

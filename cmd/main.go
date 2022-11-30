@@ -1,17 +1,19 @@
 package main
 
 import (
+	"crypto/tls"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"lab.dev.vm.co.mz/compse/sandman/internal/adapters/application"
+	_sqs "lab.dev.vm.co.mz/compse/sandman/internal/adapters/framework/primary/sqs"
+	_http "lab.dev.vm.co.mz/compse/sandman/internal/adapters/framework/secundary/http"
+	sqsOut "lab.dev.vm.co.mz/compse/sandman/internal/adapters/framework/secundary/sqs"
+	"lab.dev.vm.co.mz/compse/sandman/internal/ports"
 	"net/http"
 	"os"
-	"serviceman/internal/adapters/application"
-	_sqs "serviceman/internal/adapters/framework/primary/sqs"
-	_http "serviceman/internal/adapters/framework/secundary/http"
-	sqsOut "serviceman/internal/adapters/framework/secundary/sqs"
-	"serviceman/internal/ports"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -19,7 +21,17 @@ func main() {
 	var AppAdapter ports.APPPort
 	var requestAdater ports.RequestPORT
 	var sqsOutbound ports.SecSQSPORT
-	httpClient := http.Client{}
+	var httpClient ports.HTTPClient
+
+	ssl := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	httpClient = &http.Client{
+		Timeout: 120 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: ssl,
+		},
+	}
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
@@ -31,7 +43,7 @@ func main() {
 	//queueUrl := "http://localhost:4566/000000000000/sandman-q"
 
 	sqsOutbound = sqsOut.NewAdapter(sess, sqsSvc, queueUrl)
-	requestAdater = _http.NewAdapter(&httpClient, sqsOutbound)
+	requestAdater = _http.NewAdapter(httpClient, sqsOutbound, http.NewRequest)
 	AppAdapter = application.NewAdapter(requestAdater)
 	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, AppAdapter, queueUrl, ":8080")
 

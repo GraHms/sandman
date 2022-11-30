@@ -1,6 +1,6 @@
 package http
 
-import "serviceman/internal/pkg/models"
+import "lab.dev.vm.co.mz/compse/sandman/internal/pkg/models"
 
 type Compose struct {
 	body       models.Body
@@ -30,20 +30,20 @@ func (c *Compose) Compose() {
 }
 
 func (c *Compose) AttachCallBacks() {
-	_callbacks := make(map[int][]RequestModel)
+	callbacks := make(map[int][]RequestModel)
 	for _, callback := range c.body.Response.Callbacks {
 		triggerStatus := callback.WhenRequestStatus
 		val := c.PrepareCallback(callback)
-		if _, ok := _callbacks[triggerStatus]; !ok {
-			_callbacks[triggerStatus] = []RequestModel{
+		if _, ok := callbacks[triggerStatus]; !ok {
+			callbacks[triggerStatus] = []RequestModel{
 				*val,
 			}
 			continue
 		}
-		_callbacks[triggerStatus] = append(_callbacks[triggerStatus], *val)
+		callbacks[triggerStatus] = append(callbacks[triggerStatus], *val)
 	}
 
-	c.Candidates.callbacks = _callbacks
+	c.Candidates.callbacks = callbacks
 }
 
 func (c *Compose) PrepareMain() *RequestModel {

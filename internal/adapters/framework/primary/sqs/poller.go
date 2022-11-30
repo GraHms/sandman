@@ -5,13 +5,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	"github.com/gin-gonic/gin"
-	"serviceman/internal/ports"
+	"lab.dev.vm.co.mz/compse/sandman/internal/ports"
 	"sync"
 )
 
 type Adapter struct {
-	SQS        *sqs.SQS
+	SQS        sqsiface.SQSAPI
 	AppAdapter ports.APPPort
 	router     *gin.Engine
 	QueueUrl   string
@@ -19,7 +20,7 @@ type Adapter struct {
 	SqsSess    *session.Session
 }
 
-func NewAdapter(SqsSess *session.Session, sqs *sqs.SQS, appAdapter ports.APPPort, queueUrl string, addr string) *Adapter {
+func NewAdapter(SqsSess *session.Session, sqs sqsiface.SQSAPI, appAdapter ports.APPPort, queueUrl string, addr string) *Adapter {
 	router := gin.Default()
 	return &Adapter{
 		SqsSess:    SqsSess,
@@ -52,9 +53,7 @@ func (sqsa *Adapter) PollMessages(chn chan<- *sqs.Message) {
 }
 
 func (sqsa *Adapter) HandleMessage(msg *sqs.Message) error {
-	//intent := *msg.MessageAttributes["Intent"]
-	//pub := *msg.MessageAttributes["Publisher"]
-	//sub := *msg.MessageAttributes["Subscribers"]
+
 	fmt.Println("Receiving a message")
 	err := sqsa.AppAdapter.ProcessMessage(msg)
 	if err != nil {
@@ -85,16 +84,18 @@ func (sqsa *Adapter) ReadMessages(chnMessages chan *sqs.Message) {
 func (sqsa *Adapter) HandleMessages(chnMessages <-chan *sqs.Message) {
 	wg := sync.WaitGroup{}
 	for message := range chnMessages {
+		msg := message
 		wg.Add(1)
+
 		func() {
 			defer wg.Done()
 			// HandleMessage message is error, do not delete from queue
-			err := sqsa.HandleMessage(message)
+			err := sqsa.HandleMessage(msg)
 			if err != nil {
 				return
 			}
 			// if processed, delete from queue
-			sqsa.DeleteMessage(message)
+			sqsa.DeleteMessage(msg)
 		}()
 	}
 	wg.Wait()

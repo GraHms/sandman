@@ -6,16 +6,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"serviceman/internal/pkg/models"
+	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"lab.dev.vm.co.mz/compse/sandman/internal/pkg/models"
 )
 
 type Adapter struct {
-	SQS      *sqs.SQS
+	SQS      sqsiface.SQSAPI
 	QueueUrl string
 	SqsSess  *session.Session
 }
 
-func NewAdapter(SqsSess *session.Session, sqs *sqs.SQS, queueUrl string) *Adapter {
+func NewAdapter(SqsSess *session.Session, sqs sqsiface.SQSAPI, queueUrl string) *Adapter {
 
 	return &Adapter{
 		SqsSess:  SqsSess,

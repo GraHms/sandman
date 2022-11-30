@@ -6,25 +6,27 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"lab.dev.vm.co.mz/compse/sandman/internal/pkg/models"
+	"lab.dev.vm.co.mz/compse/sandman/internal/ports"
 	"net/http"
-	"serviceman/internal/pkg/models"
-	"serviceman/internal/ports"
 	"sync"
 )
 
 type Adapter struct {
-	client      *http.Client
+	client      ports.HTTPClient
 	sqsOutbound ports.SecSQSPORT
+	NewRequest  func(method, url string, body io.Reader) (*http.Request, error)
 }
 
 var logger = NewLogger()
 
-func NewAdapter(client *http.Client, sqsOutbound ports.SecSQSPORT) *Adapter {
+func NewAdapter(client ports.HTTPClient, sqsOutbound ports.SecSQSPORT, NewRequest func(method, url string, body io.Reader) (*http.Request, error)) *Adapter {
 	adp := Adapter{
 		client:      client,
 		sqsOutbound: sqsOutbound,
+		NewRequest:  NewRequest,
 	}
-	adp.SetHttpClient()
+
 	return &adp
 }
 
@@ -35,8 +37,8 @@ func (seca *Adapter) ConvertBodyResponse(resp *http.Response) map[string]interfa
 		println("could not unmarshal response body", err)
 	}
 	defer func(Body io.ReadCloser) {
-		_err := Body.Close()
-		if _err != nil {
+		err := Body.Close()
+		if err != nil {
 			return
 		}
 	}(resp.Body)
@@ -71,9 +73,9 @@ func (seca *Adapter) SendRequest(body models.Body) error {
 	if err != nil {
 		// if is not an api error
 		// send request back to queue
-		if _err, ok := err.(*RequestError); !ok {
+		if _, ok := err.(*RequestError); !ok {
 			logger.log("failed", "", "keepInQueue", electedHead)
-			return _err
+			return err
 		}
 		// check if error status code has callbacks to execute
 		if val, ok := callbacks[headRespBody.StatusCode]; ok {
@@ -129,28 +131,28 @@ func (seca *Adapter) ExecCallbacks(callbacks []RequestModel, respBody map[string
 	wg := sync.WaitGroup{}
 	for _, callback := range callbacks {
 
-		_callback := callback
+		localCallback := callback
 		wg.Add(1)
 		go func() {
 
 			defer wg.Done()
 
-			attachToBody := seca.BodyMapper(respBody, _callback)
-			reqBody := _callback.Body.(map[string]interface{})
+			attachToBody := seca.BodyMapper(respBody, localCallback)
+			reqBody := localCallback.Body.(map[string]interface{})
 			for k, v := range attachToBody {
 				reqBody[k] = v
 			}
-			res, err := seca.Execute(&_callback, reqBody)
+			res, err := seca.Execute(&localCallback, reqBody)
 			println(res.StatusCode)
 			if err != nil {
 
 				//if error, add this callback to the queue, as a new main
-				_ = seca.sqsOutbound.SendMessage(seca.SQSOutBoundBodyMapper(_callback, reqBody))
-				logger.log("failed", "could not execute callback", "electedNewEvent", _callback)
+				_ = seca.sqsOutbound.SendMessage(seca.SQSOutBoundBodyMapper(localCallback, reqBody))
+				logger.log("failed", "could not execute callback", "electedNewEvent", localCallback)
 
 				return
 			}
-			logger.log("processed", "successfully processed callback", "popdEvent", _callback)
+			logger.log("processed", "successfully processed callback", "popdEvent", localCallback)
 		}()
 
 	}
@@ -169,7 +171,7 @@ func (seca *Adapter) Execute(reqModel *RequestModel, body map[string]interface{}
 	bodyBytes, err := json.Marshal(body)
 
 	if err != nil {
-		fmt.Printf("couldn't marshal body: ", bodyBytes)
+		fmt.Printf("couldn't marshal body: %v", bodyBytes)
 		return resp, err
 	}
 	bodyReader := bytes.NewReader(bodyBytes)
@@ -195,28 +197,6 @@ func (seca *Adapter) Execute(reqModel *RequestModel, body map[string]interface{}
 		Err:        errors.New(e),
 	}
 	return resp, reqErr
-	//return resp, errors.New(e)
-}
-
-func (seca *Adapter) PrepareMainRequest(body models.Body) *RequestModel {
-	var req RequestModel
-	req.Intent = body.Intent
-	req.TraceId = body.TraceId
-	req.Description = body.Description
-	req.GroupReference = body.GroupReference
-	req.Owner = body.Owner
-	req.SandmanVersion = body.SandmanVersion
-	req.Name = body.Name
-	req.Journey = body.Journey
-	req.ExpectSuccessStatus = body.Response.SuccessStatus
-	req.Retries = body.Request.Retries
-	req.Endpoint = body.Request.Sub
-	req.Method = body.Request.Method
-	req.Body = body.Request.Body
-	req.ContentType = body.Request.ContentType
-	req.Headers = body.Request.Headers
-	return &req
-
 }
 
 type RequestModel struct {
