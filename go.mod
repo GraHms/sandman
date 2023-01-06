@@ -6,6 +6,8 @@ require (
 	github.com/aws/aws-sdk-go v1.44.139
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-playground/assert/v2 v2.0.1
+	github.com/spf13/viper v1.14.0
+    go.uber.org/zap v1.24.0
 )
 
 require (

@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"lab.dev.vm.co.mz/compse/sandman/config"
 	"lab.dev.vm.co.mz/compse/sandman/internal/adapters/application"
 	_sqs "lab.dev.vm.co.mz/compse/sandman/internal/adapters/framework/primary/sqs"
 	_http "lab.dev.vm.co.mz/compse/sandman/internal/adapters/framework/secundary/http"
@@ -17,6 +18,7 @@ import (
 )
 
 func main() {
+	logger := config.Logger()
 	var SqsPollAdapter ports.SQSPORT
 	var AppAdapter ports.APPPort
 	var requestAdater ports.RequestPORT
@@ -46,12 +48,12 @@ func main() {
 	requestAdater = _http.NewAdapter(httpClient, sqsOutbound, http.NewRequest)
 	AppAdapter = application.NewAdapter(requestAdater)
 	SqsPollAdapter = _sqs.NewAdapter(sess, sqsSvc, AppAdapter, queueUrl, ":8080")
-
+	config.Init()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		println("server is running")
+		logger.Info("server is running")
 		SqsPollAdapter.RUN()
 	}()
 
@@ -60,7 +62,7 @@ func main() {
 		defer wg.Done()
 		chnMessages := make(chan *sqs.Message, 20)
 		go SqsPollAdapter.ReadMessages(chnMessages)
-		println("sqs is running")
+		logger.Info("sqs is running")
 		SqsPollAdapter.HandleMessages(chnMessages)
 	}()
 	wg.Wait()
