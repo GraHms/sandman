@@ -74,6 +74,8 @@ module "sandman-service" {
         clear_text = {
 
           "SQS_QUEUE_URL"="${aws_sqs_queue.compse_sqs_sandman.url}"
+          "LOGING_CONF"=var.log_level
+
 
         }
       }

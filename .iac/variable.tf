@@ -98,3 +98,7 @@ variable "container_min_replicas" {
   type = number
   description = "Max container replicas"
 }
+variable "log_level" {
+  type = string
+}
+
