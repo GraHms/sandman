@@ -1,8 +1,8 @@
-aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name sandman-queue
-
-#sudo snap install aws-cli --classic
-create-local-queue:
- 	@aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name sandman-queue
+#aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name sandman-queue
+#
+##sudo snap install aws-cli --classic
+#create-local-queue:
+# 	@aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name sandman-queue
 
 build:
 	@go build -o app cmd/main.go #gosetup
