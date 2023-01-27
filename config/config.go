@@ -1,8 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
+	"strings"
 )
 
 var config *viper.Viper
@@ -13,9 +15,11 @@ func Init() {
 	var err error
 	config = viper.New()
 	config.SetConfigType("env")
-	config.AddConfigPath("../etc/")
-	config.AddConfigPath("./etc/")
-	config.AddConfigPath("./../../../../../../../etc/")
+	config.AddConfigPath(".")
+	config.AddConfigPath("etc")
+	for i := 0; i < 10; i++ {
+		config.AddConfigPath(fmt.Sprintf("..%setc", strings.Repeat("/", i)))
+	}
 	config.SetConfigName("config")
 	config.AutomaticEnv()
 

@@ -11,6 +11,7 @@ RUN $APP_DIR/post-install.sh
 
 RUN chmod +x $APP_DIR/app
 
+COPY etc/config.env $APP_DIR/etc/config.env
 # to run as unprivileged user
 USER $APP_USER
 
