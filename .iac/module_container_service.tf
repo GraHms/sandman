@@ -1,5 +1,5 @@
 module "sandman-service" {
-  source = "https://nexus.pkg.dev.vm.co.mz/repository/zip-public/tf-modules/aws-container-svc/2.0.0-RELEASE.zip"
+  source = "https://nexus.pkg.dev.vm.co.mz/repository/zip-public/tf-modules/aws-container-svc/2.1.1-RELEASE.zip"
 
   expose = {
     reachability="internal-private"
