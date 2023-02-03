@@ -37,13 +37,9 @@ func main() {
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			//Credentials: credentials.NewStaticCredentials("root", "root", ""),
-			//Endpoint:    aws.String("http://localhost:4566"),
 			Region: aws.String("af-south-1")}}))
 	sqsSvc := sqs.New(sess)
 	queueUrl := os.Getenv("SQS_QUEUE_URL")
-	//queueUrl := "http://localhost:4566/000000000000/sandman-q"
-
 	sqsOutbound = sqsOut.NewAdapter(sess, sqsSvc, queueUrl)
 	requestAdater = _http.NewAdapter(httpClient, sqsOutbound, http.NewRequest)
 	AppAdapter = application.NewAdapter(requestAdater)
