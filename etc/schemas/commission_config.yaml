@@ -1,6 +1,0 @@
-apiVersion: mz.co.vm.sandman/v1
-kind: SandmanSchemaConfiguration
-Author: Commercial P&S
-spec:
-  schema:
-    file: payment_scheme.yaml
