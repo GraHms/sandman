@@ -25,6 +25,8 @@ func main() {
 	var sqsOutbound ports.SecSQSPORT
 	var httpClient ports.HTTPClient
 
+	region := "af-south-1"
+
 	ssl := &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -37,7 +39,7 @@ func main() {
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			Region: aws.String("af-south-1")}}))
+			Region: aws.String(region)}}))
 	sqsSvc := sqs.New(sess)
 	queueUrl := os.Getenv("SQS_QUEUE_URL")
 	sqsOutbound = sqsOut.NewAdapter(sess, sqsSvc, queueUrl)
