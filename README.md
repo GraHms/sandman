@@ -169,7 +169,7 @@ The following additional features are available in Sandman:
 
 For example:
 
-`1Copy code{ 2 "response": { 3 "hasCallBack": true, 4 "callbacks": [ 5 { 6 "whenRequestStatus": 200, 7 "mapToBody": [ 8 { 9 "queryField": "paymentId", 10 "targetField": "paymentReference" 11 } 12 ], 13 "request": { 14 "sub": "https://commission-backend.svc.dev.ind.vm.co.mz/api/v1/payments/3/feedback", 15 "body": { 16 "paymentReference": "" 17 } 18 } 19 } 20 ] 21 } 22} 23`
+`1Copy code{ 2 "response": { 3 "hasCallBack": true, 4 "callbacks": [ 5 { 6 "whenRequestStatus": 200, 7 "mapToBody": [ 8 { 9 "queryField": "paymentId", 10 "targetField": "paymentReference" 11 } 12 ], 13 "request": { 14 "sub": "https://microservice.svc.local/api/v1/resources/id/feedback", 15 "body": { 16 "reference": "" 17 } 18 } 19 } 20 ] 21 } 22} 23`
 
 In this example, the "paymentId" field from the initial "request" or "response" would be mapped to the "paymentReference" field in the callback's "request" body.
 
