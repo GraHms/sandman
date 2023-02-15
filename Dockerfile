@@ -1,4 +1,4 @@
-FROM docker.pkg.dev.vm.co.mz/alpine-base:2.0.1
+FROM golang 
 
 COPY main $APP_DIR/app
 
